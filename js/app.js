@@ -483,8 +483,31 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                // Se houver erro na API, usar simulação como fallback
-                mostrarNotificacao(`Erro na API: ${response.status}. Usando simulação.`, 'warning');
+                // Tratamento específico para erro de autenticação
+                if (response.status === 401) {
+                    console.error('Erro de autenticação na API do OpenAI (401 Unauthorized)');
+                    mostrarNotificacao('Chave da API inválida ou expirada. Por favor, verifique suas configurações.', 'error');
+                    
+                    // Marcar a chave como inválida e remover a chave atual
+                    localStorage.setItem('profquest_apiKeyInvalida', 'true');
+                    localStorage.removeItem('profquest_apiKey');
+                    
+                    // Atualizar o campo de API Key na interface principal se estiver visível
+                    const apiKeyInput = document.getElementById('apiKey');
+                    if (apiKeyInput) {
+                        apiKeyInput.value = '';
+                    }
+                    
+                    // Mostrar modal para inserir nova chave após um pequeno delay
+                    setTimeout(() => {
+                        mostrarModalChaveAPI();
+                    }, 1500);
+                } else {
+                    // Outros erros da API
+                    mostrarNotificacao(`Erro na API: ${response.status}. Usando simulação.`, 'warning');
+                }
+                
+                // Em qualquer caso de erro, usar simulação como fallback
                 return simulacaoGerarQuestoes(dados);
             }
             return response.json();
@@ -1053,6 +1076,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function mostrarModalChaveAPI() {
         const modalChaveAPI = new bootstrap.Modal(document.getElementById('modalChaveAPI'));
+        const apiKeyInvalida = localStorage.getItem('profquest_apiKeyInvalida') === 'true';
+        
+        // Se a chave foi marcada como inválida, mostrar mensagem de erro no modal
+        if (apiKeyInvalida) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger mb-3';
+            alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> <strong>Erro de autenticação:</strong> A chave da API fornecida é inválida ou expirou. Por favor, insira uma nova chave válida.';
+            
+            const modalBody = document.getElementById('modalChaveAPI').querySelector('.modal-body');
+            const firstChild = modalBody.firstChild;
+            modalBody.insertBefore(alertDiv, firstChild);
+            
+            // Limpar o campo da chave da API
+            document.getElementById('apiKeyModal').value = '';
+            
+            // Remover a flag de chave inválida
+            localStorage.removeItem('profquest_apiKeyInvalida');
+        }
+        
         modalChaveAPI.show();
         
         // Event listener para o formulário de chave da API
@@ -1068,6 +1110,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (apiKeyInput) {
                     apiKeyInput.value = apiKey;
                 }
+                
+                // Remover o modo de simulação se estiver ativado
+                localStorage.removeItem('profquest_usarSimulacao');
                 
                 mostrarNotificacao('Chave da API do GPT-4 salva com sucesso!', 'success');
                 modalChaveAPI.hide();
