@@ -467,12 +467,34 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             try {
+                // Verificar se a resposta tem o formato esperado
+                if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+                    console.error('Formato de resposta inválido:', data);
+                    mostrarNotificacao('Formato de resposta inválido. Usando simulação.', 'error');
+                    return simulacaoGerarQuestoes(dados);
+                }
+                
                 // Extrair e parsear o JSON da resposta
                 const content = data.choices[0].message.content;
+                
+                // Verificar se o conteúdo existe
+                if (!content) {
+                    console.error('Conteúdo da resposta vazio ou inválido');
+                    mostrarNotificacao('Conteúdo da resposta vazio. Usando simulação.', 'error');
+                    return simulacaoGerarQuestoes(dados);
+                }
+                
                 let questoes;
                 
                 try {
                     questoes = JSON.parse(content);
+                    
+                    // Verificar se questoes existe
+                    if (!questoes) {
+                        console.error('Resposta JSON vazia ou inválida');
+                        mostrarNotificacao('Resposta JSON inválida. Usando simulação.', 'error');
+                        return simulacaoGerarQuestoes(dados);
+                    }
                     
                     // Verificar se questoes é um array
                     if (!Array.isArray(questoes)) {
