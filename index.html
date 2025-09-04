@@ -421,6 +421,39 @@
         </div>
     </div>
 
+    <!-- Modal de Chave da API -->
+    <div class="modal fade" id="modalChaveAPI" tabindex="-1" aria-labelledby="modalChaveAPILabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalChaveAPILabel"><i class="fas fa-key me-2"></i>Configuração da API</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> <strong>Importante:</strong> Para usar o ProfQuest com a API do GPT-4, você precisa inserir sua chave da API da OpenAI.
+                    </div>
+                    <form id="formChaveAPI">
+                        <div class="mb-3">
+                            <label for="apiKeyModal" class="form-label">Chave da API do OpenAI (GPT-4)</label>
+                            <input type="password" class="form-control" id="apiKeyModal" placeholder="sk-..." required>
+                            <div class="form-text">Obtenha sua chave em <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Salvar Chave da API
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnUsarSimulacao">
+                        <i class="fas fa-code me-1"></i> Usar Simulação (Sem API)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
