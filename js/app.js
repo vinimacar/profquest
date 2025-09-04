@@ -1,19 +1,36 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Salvar a chave da API fornecida
-    const apiKeyFornecida = "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";
-    localStorage.setItem('profquest_apiKey', apiKeyFornecida);
+    // Verificar se já existe uma chave da API salva
+    let apiKey = localStorage.getItem('profquest_apiKey');
     
-    // Mostrar notificação após um pequeno delay para garantir que os elementos da página foram carregados
-    setTimeout(() => {
-        mostrarNotificacao('Chave da API do GPT-4 salva com sucesso!', 'success');
-        console.log("Chave da API salva no localStorage");
+    // Se não existir uma chave salva, solicitar ao usuário
+    if (!apiKey) {
+        // Verificar se existe uma chave no URL (para uso com GitHub Pages)
+        const urlParams = new URLSearchParams(window.location.search);
+        const apiKeyFromUrl = urlParams.get('apiKey');
         
-        // Atualizar o campo de API Key na interface se estiver visível
-        const apiKeyInput = document.getElementById('apiKey');
-        if (apiKeyInput) {
-            apiKeyInput.value = apiKeyFornecida;
+        if (apiKeyFromUrl) {
+            // Se a chave estiver na URL, salvá-la e remover da URL para segurança
+            apiKey = apiKeyFromUrl;
+            localStorage.setItem('profquest_apiKey', apiKey);
+            
+            // Remover a chave da URL sem recarregar a página
+            const newUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
+            
+            mostrarNotificacao('Chave da API do GPT-4 salva com sucesso!', 'success');
+        } else {
+            // Mostrar modal para inserir a chave da API
+            setTimeout(() => {
+                mostrarModalChaveAPI();
+            }, 1000);
         }
-    }, 1000);
+    }
+    
+    // Atualizar o campo de API Key na interface se estiver visível e se houver uma chave salva
+    const apiKeyInput = document.getElementById('apiKey');
+    if (apiKeyInput && apiKey) {
+        apiKeyInput.value = apiKey;
+    }
     // Elementos da interface
     const menuNovaAtividade = document.getElementById('menuNovaAtividade');
     const menuHistorico = document.getElementById('menuHistorico');
@@ -415,9 +432,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function gerarQuestoes(dados) {
-        // Obter a chave da API do localStorage
+        // Obter a chave da API e verificar modo de simulação
         const apiKey = localStorage.getItem('profquest_apiKey');
         const modeloIA = localStorage.getItem('profquest_modeloIA') || 'gpt-4';
+        const usarSimulacao = localStorage.getItem('profquest_usarSimulacao') === 'true';
+        
+        // Verificar se o modo de simulação está ativado ou se a chave da API não está disponível
+        if (usarSimulacao) {
+            mostrarNotificacao('Modo de simulação ativado. Usando exemplos pré-definidos.', 'info');
+            return simulacaoGerarQuestoes(dados);
+        }
         
         // Verificar se a chave da API está disponível
         if (!apiKey) {
@@ -1025,6 +1049,39 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.body.classList.remove('tema-escuro');
         }
+    }
+    
+    function mostrarModalChaveAPI() {
+        const modalChaveAPI = new bootstrap.Modal(document.getElementById('modalChaveAPI'));
+        modalChaveAPI.show();
+        
+        // Event listener para o formulário de chave da API
+        document.getElementById('formChaveAPI').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const apiKey = document.getElementById('apiKeyModal').value.trim();
+            
+            if (apiKey) {
+                localStorage.setItem('profquest_apiKey', apiKey);
+                
+                // Atualizar o campo de API Key na interface principal
+                const apiKeyInput = document.getElementById('apiKey');
+                if (apiKeyInput) {
+                    apiKeyInput.value = apiKey;
+                }
+                
+                mostrarNotificacao('Chave da API do GPT-4 salva com sucesso!', 'success');
+                modalChaveAPI.hide();
+            } else {
+                mostrarNotificacao('Por favor, insira uma chave de API válida', 'error');
+            }
+        });
+        
+        // Event listener para o botão de usar simulação
+        document.getElementById('btnUsarSimulacao').addEventListener('click', function() {
+            localStorage.setItem('profquest_usarSimulacao', 'true');
+            mostrarNotificacao('Modo de simulação ativado. A API não será utilizada.', 'info');
+            modalChaveAPI.hide();
+        });
     }
     
     // Funções globais para o histórico
